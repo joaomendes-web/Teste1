@@ -3,17 +3,18 @@ import pandas as pd
 import streamlit as st
 import gspread
 from google.oauth2.service_account import Credentials
+import json
 
 # -------------------- CONFIGURAÇÃO --------------------
 st.set_page_config(page_title="Sistema de Cadastro e Login", layout="wide")
 
 # Logo e título
 st.markdown("""
-            <div style="text-align: center;">
-            <img src= "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTskwQub0SrrAmRQnXZCKKyLXOz-lGwg0lSgQ&s" alt="Logo" width ="150">
-            </div>
-            """,
-            unsafe_allow_html=True)
+             <div style="text-align: center;">
+             <img src= "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTskwQub0SrrAmRQnXZCKKyLXOz-lGwg0lSgQ&s" alt="Logo" width ="150">
+             </div>
+             """,
+             unsafe_allow_html=True)
 st.title("Sistema de Cadastro e Login Templo de Umbanda Cabocla Jurema e Caboclo Ubirajara")
 
 # -------------------- ESTADO DE SESSÃO --------------------
@@ -36,18 +37,17 @@ with col1:
         if st.button("⏏ Sair"):
             sair()
 
-# -------------------- AUTENTICAÇÃO --------------------
-SCOPE = [
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive"
-]
-CREDENTIALS_PATH = os.path.join(os.path.dirname(__file__), "cadastro.json")
-
+# -------------------- AUTENTICAÇÃO (MUDANÇA AQUI) --------------------
 try:
-    creds = Credentials.from_service_account_file(CREDENTIALS_PATH, scopes=SCOPE)
-    client = gspread.authorize(creds)
+    # Acessa os segredos configurados no Streamlit Cloud
+    creds_dict_str = st.secrets["GDRIVE_CREDENTIALS"]
+    creds_dict = json.loads(creds_dict_str)
+    
+    # Autoriza o gspread usando o dicionário
+    client = gspread.service_account_from_dict(creds_dict)
+    
 except Exception as e:
-    st.error(f"Erro ao autenticar: {e}")
+    st.error(f"Erro ao autenticar. Verifique se o segredo 'GDRIVE_CREDENTIALS' foi configurado corretamente no Streamlit Cloud. Detalhes do erro: {e}")
     st.stop()
 
 # -------------------- CONEXÃO COM PLANILHA --------------------
